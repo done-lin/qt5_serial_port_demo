@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -8,12 +8,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     serialtest = new QSerialPort(this);
     msgBox = new QMessageBox(this);
-    readtime = new QTimer(this);
+    sendtime = new QTimer(this);
     ui->SendButton->hide();
-    ui->ReceiveButton->hide();
     ui->uartoutput->hide();
-    ui->uartdevice->setText("/dev/ttymxc");
+    ui->uartdevice->setText("/dev/ttyAMA2");
+    ui->textBrowser->document()->setMaximumBlockCount(512);
+    ui->textBrowser->moveCursor(QTextCursor::End);
+    ui->textBrowser->setText("serial port received:\n");
     this->uport = "";
+    QObject::connect(serialtest,SIGNAL(readyRead()),this,SLOT(uartread()));
+    QObject::connect(sendtime,SIGNAL(timeout()),this,SLOT(on_SendButton_clicked()));
 }
 
 MainWindow::~MainWindow()
@@ -28,7 +32,7 @@ void MainWindow::on_SubmitButton_clicked()
     this->uport = ui->uartdevice->text();
        if(this->uport != "")
        {
-           serialtest->setPortName(QString(this->uport));
+           serialtest->setPortName(this->uport);
            serialtest->setBaudRate(QSerialPort::Baud115200);
            serialtest->setDataBits(QSerialPort::Data8);
            serialtest->setParity(QSerialPort::NoParity);
@@ -43,13 +47,11 @@ void MainWindow::on_SubmitButton_clicked()
                ui->label->setText("uart port open error!");
            }
            else{
-                  ui->label->setText("uart setup error!");
                   /*modify lable output and show send/receive button and uartoutput line edit*/
-                  ui->label->setText("uart setup successfully! Press Send or Receive Button");
+                  ui->label->setText("uart setup successfully!");
                   ui->SendButton->show();
-                  ui->ReceiveButton->show();
                   ui->uartoutput->show();
-                  ui->uartoutput->setText("input string for send here or default message will be sent");
+                  ui->uartoutput->setText("\r\nweiqian serial port test\n");
 
             }
        }
@@ -57,6 +59,7 @@ void MainWindow::on_SubmitButton_clicked()
 
 void MainWindow::on_SendButton_clicked()
 {
+    if(ui->SendButton->isHidden()){return;}
     /*capture uartoutput content QString and change to char[]*/
         this->len = sprintf(this->data_send, ui->uartoutput->text().toLocal8Bit().constData());
         /*judge if uartoutput lineedit is blank*/
@@ -66,21 +69,14 @@ void MainWindow::on_SendButton_clicked()
             this->len = sprintf(this->data_send,"this is a test program");
             this->data_send[this->len]='\0';
             /*popup message box to choose*/
-            msgBox->setText("iput line is blank, default message as below will be sent");
-            msgBox->setInformativeText("this is a test program");
-            msgBox->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-            msgBox->setDefaultButton(QMessageBox::Yes);
-            if(msgBox->exec() == QMessageBox::Yes)
+
+            this->ch = serialtest->write(this->data_send,this->len);
+            if(this->ch == -1)
             {
-                /*send default message*/
-                this->ch = serialtest->write(this->data_send,this->len);
-                if(this->ch == -1)
-                {
-                    QMessageBox::warning(NULL, "warning", "send error!");
-                }
-                else
-                    ui->label->setText("send default message successfully!");
+                QMessageBox::warning(NULL, "warning", "send error!");
             }
+
+
         }
         else
         {
@@ -92,8 +88,6 @@ void MainWindow::on_SendButton_clicked()
                 {
                     QMessageBox::warning(NULL, "warning", "send error!");
                 }
-                else
-                    ui->label->setText("send input message successfully!");
             }
             else
                 QMessageBox::warning(NULL, "warning", "error set data for sending!");
@@ -101,16 +95,12 @@ void MainWindow::on_SendButton_clicked()
 }
 
 void MainWindow::uartread()
-{
+{ui->textBrowser->moveCursor(QTextCursor::End);
     /* stop the timer for read timeout*/
-    if(readtime->isActive())
-        readtime->stop();
-    /*start to read from uart port*/
     this->data_read = serialtest->readAll();
     /*check if there is read error*/
     if (serialtest->error() == QSerialPort::ReadError) {
         QMessageBox::warning(NULL, "warning", "Failed to read!");
-
     }else{
         /* convert data_read from QByteArray to QString and check if "ENTER" is received*/
         QString temp = QString::fromStdString(this->data_read.toStdString());
@@ -118,39 +108,21 @@ void MainWindow::uartread()
         {
             this->str += temp;
         }else{
-        /* output data received to uartoutput lineeidt */
-            ui->uartoutput->setText(this->str);
-            ui->label->setText("receiving finished!");
-            QObject::disconnect(serialtest,SIGNAL(readyRead()),this,SLOT(uartread()));
-        }
+            ui->textBrowser->append(this->str);
+            this->str.clear();
+          }
     }
 }
 
-void MainWindow::on_ReceiveButton_clicked()
-{
-    this->str = "";
-    /* create messagebox */
-    msgBox->setText("Received data will show in edit line");
-    msgBox->setInformativeText("press ENTER when finishing, 5s timeout for no receiving");
-    msgBox->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    msgBox->setDefaultButton(QMessageBox::Yes);
-    /* if Yes button clicked */
-    if(msgBox->exec() == QMessageBox::Yes)
-    {
-        /*ready to read from uart device */
-        QObject::connect(serialtest,SIGNAL(readyRead()),this,SLOT(uartread()));
-        /* set 5s timeout time */
-        ui->label->setText("ready for receive!");
-        QObject::connect(readtime,SIGNAL(timeout()),this,SLOT(readtimeout()));
-        readtime->start(5000);
-    }
-}
 
-void MainWindow::readtimeout()
+
+void MainWindow::on_AutoButton_clicked()
 {
-    /* stop timer */
-    readtime->stop();
-    /*stop reading */
-    QObject::disconnect(serialtest,SIGNAL(readyRead()),this,SLOT(uartread()));
-    QMessageBox::warning(NULL, "warning", "data read timeout!");
+    if(sendtime->isActive()){
+        sendtime->stop();
+        ui->AutoButton->setText("auto send");
+    }else{
+        sendtime->start(150);
+        ui->AutoButton->setText("sendding");
+    }
 }

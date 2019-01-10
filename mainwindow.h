@@ -27,10 +27,9 @@ private slots:
 
     void on_SendButton_clicked();
 
-    void on_ReceiveButton_clicked();
     void uartread();
-    void readtimeout();
 
+    void on_AutoButton_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -41,7 +40,7 @@ private:
     Ui::QPushButton *ReceiveButton;
     QMessageBox *msgBox;
     QSerialPort *serialtest;
-    QTimer *readtime;
+    QTimer *sendtime;
 
     QString uport;
     QString str;

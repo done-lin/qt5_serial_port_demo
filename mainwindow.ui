@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>621</width>
+    <height>340</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,8 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>20</y>
+      <x>30</x>
+      <y>10</y>
       <width>301</width>
       <height>20</height>
      </rect>
@@ -30,7 +30,7 @@
    <widget class="QLineEdit" name="uartdevice">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>30</x>
       <y>40</y>
       <width>121</width>
       <height>26</height>
@@ -40,7 +40,7 @@
    <widget class="QPushButton" name="SubmitButton">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>30</x>
       <y>80</y>
       <width>80</width>
       <height>26</height>
@@ -53,9 +53,9 @@
    <widget class="QLineEdit" name="uartoutput">
     <property name="geometry">
      <rect>
-      <x>50</x>
+      <x>30</x>
       <y>130</y>
-      <width>291</width>
+      <width>211</width>
       <height>26</height>
      </rect>
     </property>
@@ -63,9 +63,9 @@
    <widget class="QPushButton" name="SendButton">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>30</x>
       <y>180</y>
-      <width>80</width>
+      <width>91</width>
       <height>26</height>
      </rect>
     </property>
@@ -73,17 +73,27 @@
      <string>Send</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="ReceiveButton">
+   <widget class="QTextBrowser" name="textBrowser">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>180</y>
-      <width>80</width>
-      <height>26</height>
+      <x>290</x>
+      <y>21</y>
+      <width>271</width>
+      <height>191</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="AutoButton">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>210</y>
+      <width>89</width>
+      <height>25</height>
      </rect>
     </property>
     <property name="text">
-     <string>Receive</string>
+     <string>auto send</string>
     </property>
    </widget>
   </widget>
@@ -92,8 +102,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
-     <height>23</height>
+     <width>621</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>
